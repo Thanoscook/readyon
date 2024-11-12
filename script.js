@@ -174,31 +174,131 @@ function copyDevelopersFromPreviousWeek() {
 
 
 function generateExcelReport() {
-    const data = [];
-    let headers = ['Week', 'Developer Name', 'Working Days', 'Availability %', 'Available Mandays'];
+    const targetMandays = parseFloat(document.getElementById('targetMandays').value);
+    const startDate = document.getElementById('startDate').value;
 
-    data.push(headers);
-
-    // Loop through each week and get the rows data
-    for (let i = 1; i <= weekCount; i++) {
-        const rows = document.querySelector(`#week${i} tbody`).querySelectorAll('tr');
-        
-        rows.forEach(row => {
-            // Safely access the values of the input fields
-            const developerName = row.querySelector('td:nth-child(1) input') ? row.querySelector('td:nth-child(1) input').value : '';
-            const workingDays = row.querySelector('td:nth-child(2) input') ? row.querySelector('td:nth-child(2) input').value : '';
-            const availability = row.querySelector('td:nth-child(3) input') ? row.querySelector('td:nth-child(3) input').value : '';
-            const availableMandays = row.querySelector('td:nth-child(4)') ? row.querySelector('td:nth-child(4)').textContent : '0';
-
-            // Add the row data to the array
-            data.push([`Week ${i}`, developerName, workingDays, availability, availableMandays]);
-        });
+    if (!startDate || isNaN(targetMandays) || targetMandays <= 0) {
+        alert('Please enter a valid start date and target mandays.');
+        return;
     }
 
-    // Generate the Excel file
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Project Mandays');
-    XLSX.writeFile(wb, 'Project_Mandays_Report.xlsx');
+    const wb = XLSX.utils.book_new(); // Create a new workbook
+    let summaryData = [["Week", "Start Date", "End Date", "Progress (%)", "Cumulative Mandays", "Number of Developers", "Total Available Mandays"]];
+    let developerData = [["Week", "Start Date", "End Date", "Developer Name", "Developer Mandays"]];
+
+    let totalMandays = 0;
+    let cumulativeMandays = 0;
+    let endDate = new Date(startDate);
+
+    endDate.setDate(endDate.getDate() - endDate.getDay() + 1); // Set to the first Monday of the start date
+
+    let targetWeek = 0;
+    let targetWeekStart = null;
+    let targetWeekEnd = null;
+
+    // Loop through each week and calculate the report data
+    for (let i = 1; i <= weekCount; i++) {
+        const currentTable = document.getElementById(`week${i}`);
+        const rows = currentTable.querySelectorAll(`#developerRows${i} tr`);
+
+        let weeklyMandays = 0;
+        let developers = [];
+        let developerMandays = [];
+
+        rows.forEach(row => {
+            const developerName = row.querySelector('td:nth-child(1) input').value;
+            const workingDays = parseFloat(row.querySelector('td:nth-child(2) input').value) || 0;
+            let availability = parseFloat(row.querySelector('td:nth-child(3) input').value) || 0;
+
+            // Ensure availability doesn't exceed 100%
+            availability = Math.min(availability, 100);
+
+            const availableMandays = workingDays * (availability / 100);
+            weeklyMandays += availableMandays;
+
+            // Add developer details for the second report
+            developerMandays.push([developerName, availableMandays.toFixed(2)]);
+            developers.push(developerName);
+        });
+
+        cumulativeMandays += weeklyMandays;
+        const completionPercentage = ((cumulativeMandays / targetMandays) * 100).toFixed(2);
+
+        // Calculate the end date for the week (Friday of the week)
+        const currentFriday = new Date(endDate);
+        currentFriday.setDate(currentFriday.getDate() + 4); // Friday of the same week
+
+        const weekStartStr = endDate.toLocaleDateString();
+        const weekEndStr = currentFriday.toLocaleDateString();
+
+        // Track the week where the project will be completed
+        if (cumulativeMandays >= targetMandays && targetWeek === 0) {
+            targetWeek = i;
+            targetWeekStart = weekStartStr;
+            targetWeekEnd = weekEndStr;
+        }
+
+        // Main Sheet: Add weekly progress, developer count, and available mandays
+        summaryData.push([i, weekStartStr, weekEndStr, completionPercentage, cumulativeMandays.toFixed(2), developers.length, weeklyMandays.toFixed(2)]);
+
+        // Developer Details Sheet: Add each developer's mandays for the week
+        developerMandays.forEach(devMandays => {
+            developerData.push([i, weekStartStr, weekEndStr, devMandays[0], devMandays[1]]);
+        });
+
+        // Move the start date to the next Monday
+        endDate.setDate(endDate.getDate() + 7);
+    }
+
+    // After generating the data, append the target completion week
+    summaryData.push([]);
+    summaryData.push(["Target Completion Week", `Week ${targetWeek} (${targetWeekStart} - ${targetWeekEnd})`]);
+
+    // Function to apply styles to the sheet
+    function applyStyles(sheet) {
+        const headerStyle = {
+            font: { bold: true, sz: 14, color: { rgb: "FFFFFF" } }, // Bold white font for headers
+            fill: { fgColor: { rgb: "4F81BD" } }, // Blue background for headers
+            alignment: { horizontal: "center", vertical: "center" },
+            border: { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } }
+        };
+        
+        const cellStyle = {
+            alignment: { horizontal: "center", vertical: "center" },
+            border: { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } }
+        };
+
+        // Loop through the sheet to apply styles
+        for (let row = 1; row <= sheet['!ref'].split(":")[1].slice(1); row++) {
+            for (let col = 0; col < sheet['!ref'].split(":")[1].charCodeAt(0) - 64; col++) {
+                const cellAddress = String.fromCharCode(65 + col) + row;
+                const cell = sheet[cellAddress];
+
+                // If the cell exists, apply the styles
+                if (cell) {
+                    if (row === 1) {
+                        cell.s = headerStyle; // Header row
+                    } else {
+                        cell.s = cellStyle; // Body rows
+                    }
+                }
+            }
+        }
+    }
+
+    // Convert data to worksheets
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+    const developerSheet = XLSX.utils.aoa_to_sheet(developerData);
+
+    // Apply styles to sheets
+    applyStyles(summarySheet);
+    applyStyles(developerSheet);
+
+    // Append the sheets to the workbook
+    XLSX.utils.book_append_sheet(wb, summarySheet, "Project Summary");
+    XLSX.utils.book_append_sheet(wb, developerSheet, "Developer Mandays");
+
+    // Write the Excel file and prompt download
+    XLSX.writeFile(wb, "project_report.xlsx");
 }
 
