@@ -172,26 +172,33 @@ function copyDevelopersFromPreviousWeek() {
     return copiedRows;
 }
 
+
 function generateExcelReport() {
     const data = [];
     let headers = ['Week', 'Developer Name', 'Working Days', 'Availability %', 'Available Mandays'];
 
     data.push(headers);
 
+    // Loop through each week and get the rows data
     for (let i = 1; i <= weekCount; i++) {
-        const rows = document.querySelector(`#week${i}`).querySelectorAll('tr');
+        const rows = document.querySelector(`#week${i} tbody`).querySelectorAll('tr');
+        
         rows.forEach(row => {
-            const developerName = row.querySelector('td:nth-child(1) input').value;
-            const workingDays = row.querySelector('td:nth-child(2) input').value;
-            const availability = row.querySelector('td:nth-child(3) input').value;
-            const availableMandays = row.querySelector('td:nth-child(4)').textContent;
+            // Safely access the values of the input fields
+            const developerName = row.querySelector('td:nth-child(1) input') ? row.querySelector('td:nth-child(1) input').value : '';
+            const workingDays = row.querySelector('td:nth-child(2) input') ? row.querySelector('td:nth-child(2) input').value : '';
+            const availability = row.querySelector('td:nth-child(3) input') ? row.querySelector('td:nth-child(3) input').value : '';
+            const availableMandays = row.querySelector('td:nth-child(4)') ? row.querySelector('td:nth-child(4)').textContent : '0';
 
+            // Add the row data to the array
             data.push([`Week ${i}`, developerName, workingDays, availability, availableMandays]);
         });
     }
 
+    // Generate the Excel file
     const ws = XLSX.utils.aoa_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Project Mandays');
     XLSX.writeFile(wb, 'Project_Mandays_Report.xlsx');
 }
+
