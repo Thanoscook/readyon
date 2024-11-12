@@ -32,3 +32,13 @@ th {
 .add-developer-btn { 
     cursor: pointer; 
 }
+
+.my-button {
+    padding: 10px 15px;
+    margin: 10px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}

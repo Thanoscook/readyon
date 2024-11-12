@@ -4,6 +4,12 @@ let currentMonday;
 function addWeek() {
     weekCount++;
     const tablesContainer = document.getElementById('tablesContainer');
+    console.log(new Date(document.getElementById('startDate').value))
+    if (!document.getElementById('startDate') === null || isNaN(new Date(document.getElementById('startDate').value))) {
+        alert('Please enter a valid start date.');
+        weekCount--;
+        return;
+    }
     
     if (weekCount === 1) {
         const startDate = new Date(document.getElementById('startDate').value);
@@ -21,8 +27,8 @@ function addWeek() {
 
     let tableHtml = `
         <div class="week-section">
-            <h3>Week ${weekCount} (from ${mondayStr} to ${fridayStr})</h3>
-            <table id="week${weekCount}">
+            <h3 class="text-center">Week ${weekCount} (from ${mondayStr} to ${fridayStr})</h3>
+            <table class="table table-bordered table-striped" id="week${weekCount}">
                 <thead>
                     <tr>
                         <th>Developer Name</th>
@@ -46,30 +52,30 @@ function addWeek() {
                 <p>Week ${weekCount} Progress: 
                     <span class="weeklyMandays">0</span> Mandays | 
                     <span class="completionPercentage">0</span>% Complete |
-                    <span class="remainingMandays">0</span> Mandays Remaining
+<!--                    <span class="remainingMandays">0</span> Mandays Remaining-->
                 </p>
             </div>
-            <button type="button" class="add-developer-btn" onclick="addDeveloperToWeek(${weekCount})">Add Developer</button>
+            <button type="button" class="btn btn-primary add-developer-btn" onclick="addDeveloperToWeek(${weekCount})">Add Developer</button>
         </div>
     `;
-    
+
     tablesContainer.insertAdjacentHTML('beforeend', tableHtml);
     calculateEndDate();
 }
 
 function addDeveloperToWeek(week) {
     const developerRows = document.getElementById(`developerRows${week}`);
-    
+
     let newRow = `
         <tr>
-            <td><input type="text" placeholder="Developer Name"></td>
-            <td><input type="number" min="0" placeholder="Days" oninput="calculateEndDate()"></td>
-            <td><input type="number" min="0" max="100" placeholder="%" oninput="calculateEndDate()"></td>
+            <td><input type="text" class="form-control" placeholder="Developer Name"></td>
+            <td><input type="number" class="form-control" min="0" placeholder="Days" oninput="calculateEndDate()"></td>
+            <td><input type="number" class="form-control" min="0" max="100" placeholder="%" oninput="calculateEndDate()"></td>
             <td class="availableMandays">0</td>
-            <td><button type="button" class="remove-btn" onclick="removeDeveloper(${week}, this)">Remove</button></td>
+            <td><button type="button" class="btn btn-danger btn-sm bi bi-trash" onclick="removeDeveloper(${week}, this)"></button></td>
         </tr>
     `;
-    
+
     developerRows.insertAdjacentHTML('beforeend', newRow);
 }
 
@@ -80,9 +86,11 @@ function removeDeveloper(week, button) {
 }
 
 function calculateEndDate() {
+    console.log('Calculating end date...');
     const targetMandays = parseFloat(document.getElementById('targetMandays').value);
     const startDate = document.getElementById('startDate').value;
 
+    // Validate the start date and target mandays before proceeding
     if (!startDate || isNaN(targetMandays) || targetMandays <= 0) {
         document.getElementById('mandaysStatus').textContent = 'Please enter a valid start date and target mandays.';
         return;
@@ -92,21 +100,24 @@ function calculateEndDate() {
     let cumulativeMandays = 0;
     let endDate = new Date(startDate);
 
+    // Set endDate to the first Monday of the start week
     endDate.setDate(endDate.getDate() - endDate.getDay() + 1);
 
     for (let i = 1; i <= weekCount; i++) {
         const currentTable = document.getElementById(`week${i}`);
+
+        // Ensure the table exists before accessing its rows
+        if (!currentTable) continue;
+
         const rows = currentTable.querySelectorAll(`#developerRows${i} tr`);
-        
         let weeklyMandays = 0;
 
         rows.forEach(row => {
             const workingDays = parseFloat(row.querySelector('td:nth-child(2) input').value) || 0;
             const availability = parseFloat(row.querySelector('td:nth-child(3) input').value) || 0;
             const availableMandays = workingDays * (availability / 100);
-            
+
             row.querySelector('td:nth-child(4)').textContent = availableMandays.toFixed(2);
-            
             weeklyMandays += availableMandays;
         });
 
@@ -114,45 +125,49 @@ function calculateEndDate() {
         const completionPercentage = ((cumulativeMandays / targetMandays) * 100).toFixed(2);
         const remainingMandays = Math.max(0, targetMandays - cumulativeMandays).toFixed(2);
 
+        // Update the UI elements for each week's progress
         document.querySelector(`#weekProgress${i} .weeklyMandays`).textContent = cumulativeMandays.toFixed(2);
         document.querySelector(`#weekProgress${i} .completionPercentage`).textContent = completionPercentage;
-        document.querySelector(`#weekProgress${i} .remainingMandays`).textContent = remainingMandays;
-
+        // document.querySelector(`#weekProgress${i} .remainingMandays`).textContent = remainingMandays;
+        document.getElementById('mandaysStatus').textContent = "Many days remaining: " + remainingMandays;
         currentTable.querySelector('.totalMandays').textContent = weeklyMandays.toFixed(2);
 
         totalMandays += weeklyMandays;
 
+        // Stop further calculations if project is completed
         if (totalMandays >= targetMandays) {
             const mondayDate = new Date(endDate);
             const fridayDate = new Date(endDate);
             fridayDate.setDate(fridayDate.getDate() + 4);
 
-            document.getElementById('mandaysStatus').textContent = 
+            document.getElementById('mandaysStatus').textContent =
                 `Project will be completed between ${mondayDate.toLocaleDateString()} and ${fridayDate.toLocaleDateString()}.`;
             return;
         }
 
+        // Move to the next week
         endDate.setDate(endDate.getDate() + 7);
     }
 
-    document.getElementById('mandaysStatus').textContent = 
-        `More work to do until project completion`;
+    // document.getElementById('mandaysStatus').textContent =
+    //     `More work to do until project completion`;
 }
+
 
 function copyDevelopersFromPreviousWeek() {
     if (weekCount === 1) return ` 
         <tr>
-            <td><input type="text" placeholder="Developer Name"></td>
-            <td><input type="number" min="0" placeholder="Days" oninput="calculateEndDate()"></td>
-            <td><input type="number" min="0" max="100" placeholder="%" oninput="calculateEndDate()"></td>
+            <td><input type="text" class="form-control" placeholder="Developer Name"></td>
+            <td><input type="number" class="form-control" min="0" placeholder="Days" oninput="calculateEndDate()"></td>
+            <td><input type="number" class="form-control" min="0" max="100" placeholder="%" oninput="calculateEndDate()"></td>
             <td class="availableMandays">0</td>
-            <td><button type="button" class="remove-btn" onclick="removeDeveloper(${weekCount}, this)">Remove</button></td>
+            <td><button type="button" class="btn btn-danger btn-sm bi bi-trash" onclick="removeDeveloper(${weekCount}, this)"></button></td>
         </tr>
     `;
 
     let copiedRows = '';
     const lastWeekRows = document.querySelector(`#developerRows${weekCount - 1}`).querySelectorAll('tr');
-    
+
     lastWeekRows.forEach(row => {
         const developerName = row.querySelector('td:nth-child(1) input').value;
         const workingDays = row.querySelector('td:nth-child(2) input').value;
@@ -160,18 +175,17 @@ function copyDevelopersFromPreviousWeek() {
 
         copiedRows += `
             <tr>
-                <td><input type="text" placeholder="Developer Name" value="${developerName}"></td>
-                <td><input type="number" min="0" placeholder="Days" value="${workingDays}" oninput="calculateEndDate()"></td>
-                <td><input type="number" min="0" max="100" placeholder="%" value="${availability}" oninput="calculateEndDate()"></td>
+                <td><input type="text" class="form-control" placeholder="Developer Name" value="${developerName}"></td>
+                <td><input type="number" class="form-control" min="0" placeholder="Days" value="${workingDays}" oninput="calculateEndDate()"></td>
+                <td><input type="number" class="form-control" min="0" max="100" placeholder="%" value="${availability}" oninput="calculateEndDate()"></td>
                 <td class="availableMandays">0</td>
-                <td><button type="button" class="remove-btn" onclick="removeDeveloper(${weekCount}, this)">Remove</button></td>
+                <td><button type="button" class="btn btn-danger btn-sm bi bi-trash" onclick="removeDeveloper(${weekCount}, this)"></button></td>
             </tr>
         `;
     });
 
     return copiedRows;
 }
-
 
 function generateExcelReport() {
     const targetMandays = parseFloat(document.getElementById('targetMandays').value);

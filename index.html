@@ -6,25 +6,39 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <title>Project End Date Calculator with Weekly Ranges and Progress</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
 <body>
 
-<h2>Project End Date Calculator with Weekly Ranges and Progress</h2>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">    Project Duration Calculator
+        </a></li>
+    </ol>
+    </nav>
+<div style="margin:50px;">
+    <form id="mandayForm" class="form-row">
+        <div class="col-2">
+            <label for="startDate" class="col-form-label-sm">Start Date: </label>
+            <input type="date" id="startDate" class="form-control">
+        </div>
+        <div class="col-2">
+            <label for="targetMandays" class="col-form-label-sm">Target Total Mandays: </label>
+            <input type="number" id="targetMandays" value="12" min="1" class="form-control">
+        </div>
+    </form>
 
-<form id="mandayForm">
-    <label>Start Date: 
-        <input type="date" id="startDate">
-    </label>
-    <label>Target Total Mandays: 
-        <input type="number" id="targetMandays" value="12" min="1">
-    </label>
-
-</form>
-
-<div id="tablesContainer"></div>
-<div id="mandaysStatus"></div>
-    <button type="button" class="button" onclick="addWeek()">Add Week</button>
-    <button type="button" class="button" onclick="generateExcelReport()">Generate CSV Report</button>
-<script src="script.js"></script>
+    <div id="tablesContainer"></div>
+    <div id="mandaysStatus"></div>
+    <div>
+        <button type="button" class="btn btn-primary my-button" onclick="addWeek()">Add Week</button>
+        <button type="button" class="btn btn-success my-button" onclick="generateExcelReport()">Generate Excel Report</button>
+    </div>
+    <script src="script.js"></script>
+</div>
 </body>
 </html>
