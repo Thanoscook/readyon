@@ -1,1 +1,30 @@
-<h1> test</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <title>Project End Date Calculator with Weekly Ranges and Progress</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<h2>Project End Date Calculator with Weekly Ranges and Progress</h2>
+
+<form id="mandayForm">
+    <label>Start Date: 
+        <input type="date" id="startDate">
+    </label>
+    <label>Target Total Mandays: 
+        <input type="number" id="targetMandays" value="12" min="1">
+    </label>
+    <button type="button" class="button" onclick="addWeek()">Add Week</button>
+    <button type="button" class="button" onclick="generateExcelReport()">Generate CSV Report</button>
+</form>
+
+<div id="tablesContainer"></div>
+<div id="mandaysStatus"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
