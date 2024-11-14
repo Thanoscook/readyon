@@ -10,7 +10,7 @@ function addWeek() {
         weekCount--;
         return;
     }
-    
+
     if (weekCount === 1) {
         const startDate = new Date(document.getElementById('startDate').value);
         currentMonday = new Date(startDate);
@@ -20,14 +20,14 @@ function addWeek() {
     }
 
     const currentFriday = new Date(currentMonday);
-    currentFriday.setDate(currentFriday.getDate() + 4); 
+    currentFriday.setDate(currentFriday.getDate() + 4);
 
     const mondayStr = currentMonday.toLocaleDateString();
     const fridayStr = currentFriday.toLocaleDateString();
 
     let tableHtml = `
         <div class="week-section">
-            <h3 class="text-center">Week ${weekCount} (from ${mondayStr} to ${fridayStr})</h3>
+            <h3 class="text-center" style="text-decoration: underline; font-size: 1.2em">Week ${weekCount} (from ${mondayStr} to ${fridayStr})</h3>
             <table class="table table-bordered table-striped" id="week${weekCount}">
                 <thead>
                     <tr>
@@ -48,13 +48,14 @@ function addWeek() {
                     </tr>
                 </tfoot>
             </table>
-            <div id="weekProgress${weekCount}" class="week-progress">
-                <p>Week ${weekCount} Progress: 
-                    <span class="weeklyMandays">0</span> Mandays | 
-                    <span class="completionPercentage">0</span>% Complete |
-<!--                    <span class="remainingMandays">0</span> Mandays Remaining-->
-                </p>
-            </div>
+                <div id="weekProgress${weekCount}" class="week-progress" style="text-decoration: underline; font-size: 1.2em; display: flex; justify-content: center; align-items: center; width: 100vw; text-align: center;">
+                    <p style="margin: 0;">Week ${weekCount} Progress: 
+                        <span class="weeklyMandays">0</span> Mandays | 
+                        <span class="completionPercentage">0</span>% Complete
+                        <!-- <span class="remainingMandays">0</span> Mandays Remaining -->
+                    </p>
+                </div>
+
             <button type="button" class="btn btn-primary add-developer-btn" onclick="addDeveloperToWeek(${weekCount})">Add Developer</button>
         </div>
     `;
@@ -69,7 +70,7 @@ function addDeveloperToWeek(week) {
     let newRow = `
         <tr>
             <td><input type="text" class="form-control" placeholder="Developer Name"></td>
-            <td><input type="number" class="form-control" min="0" placeholder="Days" oninput="calculateEndDate()"></td>
+            <td><input type="number" class="form-control" min="0" max="5" placeholder="Days" oninput="calculateEndDate()"></td>
             <td><input type="number" class="form-control" min="0" max="100" placeholder="%" oninput="calculateEndDate()"></td>
             <td class="availableMandays">0</td>
             <td><button type="button" class="btn btn-danger btn-sm bi bi-trash" onclick="removeDeveloper(${week}, this)"></button></td>
@@ -113,8 +114,19 @@ function calculateEndDate() {
         let weeklyMandays = 0;
 
         rows.forEach(row => {
-            const workingDays = parseFloat(row.querySelector('td:nth-child(2) input').value) || 0;
-            const availability = parseFloat(row.querySelector('td:nth-child(3) input').value) || 0;
+            // Get and limit the working days input
+            let workingDays = parseFloat(row.querySelector('td:nth-child(2) input').value) || 0;
+            workingDays = Math.max(0, Math.min(workingDays, 5)); // Limit between 0 and 5
+
+            // Get and limit the availability input
+            let availability = parseFloat(row.querySelector('td:nth-child(3) input').value) || 0;
+            availability = Math.max(0, Math.min(availability, 100)); // Limit between 0 and 100
+
+            // Update the input fields if they were adjusted
+            row.querySelector('td:nth-child(2) input').value = workingDays;
+            row.querySelector('td:nth-child(3) input').value = availability;
+
+            // Calculate available mandays based on validated inputs
             const availableMandays = workingDays * (availability / 100);
 
             row.querySelector('td:nth-child(4)').textContent = availableMandays.toFixed(2);
@@ -128,8 +140,7 @@ function calculateEndDate() {
         // Update the UI elements for each week's progress
         document.querySelector(`#weekProgress${i} .weeklyMandays`).textContent = cumulativeMandays.toFixed(2);
         document.querySelector(`#weekProgress${i} .completionPercentage`).textContent = completionPercentage;
-        // document.querySelector(`#weekProgress${i} .remainingMandays`).textContent = remainingMandays;
-        document.getElementById('mandaysStatus').textContent = "Many days remaining: " + remainingMandays;
+        document.getElementById('mandaysStatus').textContent = "Mandays remaining: " + remainingMandays;
         currentTable.querySelector('.totalMandays').textContent = weeklyMandays.toFixed(2);
 
         totalMandays += weeklyMandays;
@@ -140,19 +151,14 @@ function calculateEndDate() {
             const fridayDate = new Date(endDate);
             fridayDate.setDate(fridayDate.getDate() + 4);
 
-            document.getElementById('mandaysStatus').textContent =
-                `Project will be completed between ${mondayDate.toLocaleDateString()} and ${fridayDate.toLocaleDateString()}.`;
+            document.getElementById('mandaysStatus').textContent = `Project will be completed between ${mondayDate.toLocaleDateString()} and ${fridayDate.toLocaleDateString()}.`;
             return;
         }
 
         // Move to the next week
         endDate.setDate(endDate.getDate() + 7);
     }
-
-    // document.getElementById('mandaysStatus').textContent =
-    //     `More work to do until project completion`;
 }
-
 
 function copyDevelopersFromPreviousWeek() {
     if (weekCount === 1) return ` 
@@ -271,15 +277,15 @@ function generateExcelReport() {
     // Function to apply styles to the sheet
     function applyStyles(sheet) {
         const headerStyle = {
-            font: { bold: true, sz: 14, color: { rgb: "FFFFFF" } }, // Bold white font for headers
-            fill: { fgColor: { rgb: "4F81BD" } }, // Blue background for headers
-            alignment: { horizontal: "center", vertical: "center" },
-            border: { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } }
+            font: {bold: true, sz: 14, color: {rgb: "FFFFFF"}}, // Bold white font for headers
+            fill: {fgColor: {rgb: "4F81BD"}}, // Blue background for headers
+            alignment: {horizontal: "center", vertical: "center"},
+            border: {top: {style: "thin"}, left: {style: "thin"}, bottom: {style: "thin"}, right: {style: "thin"}}
         };
-        
+
         const cellStyle = {
-            alignment: { horizontal: "center", vertical: "center" },
-            border: { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } }
+            alignment: {horizontal: "center", vertical: "center"},
+            border: {top: {style: "thin"}, left: {style: "thin"}, bottom: {style: "thin"}, right: {style: "thin"}}
         };
 
         // Loop through the sheet to apply styles
@@ -316,3 +322,23 @@ function generateExcelReport() {
     XLSX.writeFile(wb, "project_report.xlsx");
 }
 
+
+// Set today's date as default for the start date
+window.addEventListener('DOMContentLoaded', () => {
+    const startDateInput = document.getElementById('startDate');
+    const today = new Date().toISOString().split('T')[0]; // Format date as YYYY-MM-DD
+    startDateInput.value = today;
+});
+
+document.getElementById('targetMandays').addEventListener('input', () => {
+    ensureMinimumMandays();
+    calculateEndDate();
+});
+
+
+function ensureMinimumMandays() {
+    const targetMandaysInput = document.getElementById('targetMandays');
+    if (targetMandaysInput.value < 1) {
+        targetMandaysInput.value = 1;
+    }
+}

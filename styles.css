@@ -2,6 +2,11 @@ body {
     font-family: Arial, sans-serif; 
 }
 
+html, body {
+    overflow-x: hidden;
+}
+
+
 table { 
     border-collapse: collapse; 
     width: 100%; 
@@ -41,4 +46,18 @@ th {
     color: white;
     border: none;
     border-radius: 5px;
+}
+
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #34495E;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-size: 1em;
+    z-index: 1000; /* Keeps it above other elements */
 }

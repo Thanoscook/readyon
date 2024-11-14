@@ -14,12 +14,16 @@
 </head>
 <body>
 
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">    Project Duration Calculator
-        </a></li>
-    </ol>
-    </nav>
+<!--<nav aria-label="breadcrumb">-->
+<!--    <ol class="breadcrumb">-->
+<!--        <li class="breadcrumb-item"><a href="#"> <h3>Project Duration Calculator</h3>-->
+<!--        </a></li>-->
+<!--    </ol>-->
+<!--</nav>-->
+<div style="background-color: #34495E; color: #FFFFFF; height: 5vh; display: flex; align-items: center;">
+    <h2 class="text-2xl" style="margin-left: 30px;">Project Duration Calculator</h2>
+</div>
+
 <div style="margin:50px;">
     <form id="mandayForm" class="form-row">
         <div class="col-2">
@@ -28,16 +32,22 @@
         </div>
         <div class="col-2">
             <label for="targetMandays" class="col-form-label-sm">Target Total Mandays: </label>
-            <input type="number" id="targetMandays" value="12" min="1" class="form-control">
+            <input type="number" id="targetMandays" class="form-control" value="1" min="1" oninput="ensureMinimumMandays()">
         </div>
     </form>
 
     <div id="tablesContainer"></div>
-    <div id="mandaysStatus"></div>
+    <div  style="background-color: #F8F8F8; margin-top: 40px;">
+    <div id="mandaysStatus" style="text-decoration: underline; font-size: 1.2em" ></div>
     <div>
         <button type="button" class="btn btn-primary my-button" onclick="addWeek()">Add Week</button>
-        <button type="button" class="btn btn-success my-button" onclick="generateExcelReport()">Generate Excel Report</button>
+        <button type="button" class="btn btn-success my-button" onclick="generateExcelReport()">Generate Excel Report
+        </button>
     </div>
+    </div>
+    <footer class="footer">
+        <p>&copy;Powered by Thanos Athanasopoulos | <a href="#" style="color: #EAEAEA;">Privacy Policy</a> | <a href="#" style="color: #EAEAEA;">Terms of Service</a></p>
+    </footer>
     <script src="script.js"></script>
 </div>
 </body>
